@@ -1,0 +1,104 @@
+db.patients.insertMany([
+{patientName:"Arun",doctor:"Dr. Ravi",department:"Cardiology",age:45,treatmentCost:20000,daysAdmitted:5},
+{patientName:"Meena",doctor:"Dr. Kumar",department:"Neurology",age:50,treatmentCost:30000,daysAdmitted:7},
+{patientName:"Raj",doctor:"Dr. Ravi",department:"Cardiology",age:60,treatmentCost:15000,daysAdmitted:3},
+{patientName:"Divya",doctor:"Dr. Mehta",department:"Orthopedics",age:35,treatmentCost:10000,daysAdmitted:2},
+{patientName:"Kiran",doctor:"Dr. Kumar",department:"Neurology",age:40,treatmentCost:25000,daysAdmitted:6},
+{patientName:"Sneha",doctor:"Dr. Mehta",department:"Orthopedics",age:30,treatmentCost:8000,daysAdmitted:2},
+{patientName:"Vijay",doctor:"Dr. Ravi",department:"Cardiology",age:55,treatmentCost:22000,daysAdmitted:4},
+{patientName:"Priya",doctor:"Dr. Kumar",department:"Neurology",age:48,treatmentCost:27000,daysAdmitted:5},
+{patientName:"Anil",doctor:"Dr. Mehta",department:"Orthopedics",age:52,treatmentCost:12000,daysAdmitted:3},
+{patientName:"Riya",doctor:"Dr. Ravi",department:"Cardiology",age:29,treatmentCost:18000,daysAdmitted:4}
+])
+
+//1
+db.patients.aggregate([
+{$match:{treatmentCost:{$gt:20000}}},
+{$project:{patientName:1,department:1,_id:0}}
+])
+
+//2
+db.patients.aggregate([
+  { $sort: { treatmentCost: -1 } }
+])
+
+//3
+db.patients.aggregate([
+{$limit:5}
+])
+
+//4
+db.patients.aggregate([
+{$skip:3}
+])
+
+//5
+db.patients.aggregate([
+{$match:{department:"Cardiology"}},
+{$project:{patientName:1,_id:0}}
+])
+
+//6
+db.patients.aggregate([
+{$group:{_id:"$department",totalCost:{$sum:"$treatmentCost"}}}
+])
+
+//7
+db.patients.aggregate([
+{$group:{_id:"$doctor",avgCost:{$avg:"$treatmentCost"}}},
+{$sort:{avgCost:1}}
+])
+
+//8
+db.patients.aggregate([
+{$group:{_id:"$department",totalCost:{$sum:"$treatmentCost"}}},
+{$match:{totalCost:{$gt:50000}}}
+])
+
+//9
+db.patients.aggregate([
+{$group:{_id:"$department",count:{$sum:1}}},
+{$sort:{count:-1}}
+])
+
+//10
+db.patients.aggregate([
+{$group:{_id:"$doctor",totalCost:{$sum:"$treatmentCost"}}},
+{$sort:{totalCost:-1}},
+{$limit:3}
+])
+
+//11
+db.patients.aggregate([
+{$match:{age:{$gt:40}}},
+{$group:{_id:"$department",count:{$sum:1}}}
+])
+
+//12
+db.patients.aggregate([
+{$group:{_id:"$department",avgCost:{$avg:"$treatmentCost"}}},
+{$project:{department:"$_id",avgCost:1,_id:0}},
+{$sort:{avgCost:-1}}
+])
+
+//13
+db.patients.aggregate([
+{$group:{_id:"$department",count:{$sum:1}}},
+{$match:{count:{$gt:2}}}
+])
+
+//14
+db.patients.aggregate([
+{$group:{_id:"$department",totalCost:{$sum:"$treatmentCost"}}},
+{$sort:{totalCost:-1}},
+{$skip:1},
+{$limit:3}
+])
+
+//15
+db.patients.aggregate([
+{$match:{treatmentCost:{$gt:10000}}},
+{$group:{_id:"$doctor",totalCost:{$sum:"$treatmentCost"}}},
+{$sort:{totalCost:-1}},
+{$limit:2}
+])
