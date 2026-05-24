@@ -1,0 +1,221 @@
+db.orders.insertMany([
+  { customerName: "Asha", product: "Laptop", category: "Electronics", quantity: 1, price: 50000, totalAmount: 50000 },
+  { customerName: "Ravi", product: "Mobile", category: "Electronics", quantity: 2, price: 20000, totalAmount: 40000 },
+  { customerName: "Kiran", product: "Shoes", category: "Fashion", quantity: 3, price: 2000, totalAmount: 6000 },
+  { customerName: "Divya", product: "Watch", category: "Accessories", quantity: 2, price: 3000, totalAmount: 6000 },
+  { customerName: "Manoj", product: "Table", category: "Furniture", quantity: 1, price: 10000, totalAmount: 10000 },
+  { customerName: "Sneha", product: "Chair", category: "Furniture", quantity: 4, price: 2500, totalAmount: 10000 },
+  { customerName: "Arun", product: "Headphones", category: "Electronics", quantity: 2, price: 1500, totalAmount: 3000 },
+  { customerName: "Meena", product: "Bag", category: "Fashion", quantity: 2, price: 1200, totalAmount: 2400 },
+  { customerName: "Vijay", product: "TV", category: "Electronics", quantity: 1, price: 30000, totalAmount: 30000 },
+  { customerName: "Priya", product: "Dress", category: "Fashion", quantity: 5, price: 1000, totalAmount: 5000 }
+])
+
+
+
+// Minimum Order Amount
+db.orders.aggregate([
+  { $group: { _id: null, minAmount: { $min: "$totalAmount" } } }
+])
+
+// Maximum Order Amount
+db.orders.aggregate([
+  { $group: { _id: null, maxAmount: { $max: "$totalAmount" } } }
+])
+
+// Average Order Amount
+db.orders.aggregate([
+  { $group: { _id: null, avgAmount: { $avg: "$totalAmount" } } }
+])
+
+// Total Number of Orders (Count)
+db.orders.aggregate([
+  { $group: { _id: null, totalOrders: { $sum: 1 } } }
+])
+
+// Total Revenue (Sum)
+db.orders.aggregate([
+  { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" } } }
+])
+
+Aggregation Pipeline Stages
+
+// $match (Orders > 10000)
+db.orders.aggregate([
+  { $match: { totalAmount: { $gt: 10000 } } }
+])
+
+// $project (Customer & Amount only)
+db.orders.aggregate([
+  { $project: { customerName: 1, totalAmount: 1, _id: 0 } }
+])
+
+// $limit (First 5 results)
+db.orders.aggregate([
+  { $limit: 5 }
+])
+
+// $skip (First 3 orders)
+db.orders.aggregate([
+  { $skip: 3 }
+])
+
+// Sort (Total Amount in descending order)
+db.orders.aggregate([
+  { $sort: { totalAmount: -1 } }
+])
+
+// Group (Total Revenue by Category)
+db.orders.aggregate([
+  {
+    $group: {
+      _id: "$category",
+      totalRevenue: { $sum: "$totalAmount" },
+      avgAmount: { $avg: "$totalAmount" },
+      maxAmount: { $max: "$totalAmount" },
+      minAmount: { $min: "$totalAmount" },
+      count: { $sum: 1 }
+    }
+  }
+])
+
+
+// Example 1: Total Revenue by Category
+db.orders.aggregate([
+  { $match: { totalAmount: { $gt: 10000 } } },
+  { $group: { _id: "$category", totalRevenue: { $sum: "$totalAmount" } } },
+  { $project: { category: "$_id", totalRevenue: 1, _id: 0 } },
+  { $sort: { totalRevenue: -1 } }
+])
+
+// Example 2: Average Price per Product (Top 3 Results)
+db.orders.aggregate([
+  { $group: { _id: "$product", avgAmount: { $avg: "$totalAmount" } } },
+  { $project: { product: "$_id", avgAmount: 1, _id: 0 } },
+  { $sort: { avgAmount: -1 } },
+  { $limit: 3 }
+])
+
+// Example 3: Customer Orders (Skip + Limit)
+db.orders.aggregate([
+  { $project: { customerName: 1, totalAmount: 1, _id: 0 } },
+  { $sort: { totalAmount: -1 } },
+  { $skip: 2 },
+  { $limit: 3 }
+])
+
+// Example 4: Count Orders per Category 
+db.orders.aggregate([
+  { $match: { quantity: { $gt: 2 } } },
+  { $group: { _id: "$category", count: { $sum: 1 } } },
+  { $match: { count: { $gt: 1 } } },
+  { $sort: { count: 1 } }
+])
+
+// Example 5: Total Quantity by Brand (Pagination)
+db.orders.aggregate([
+  { $group: { _id: "$category", totalQty: { $sum: "$quantity" } } },
+  { $sort: { totalQty: -1 } },
+  { $skip: 1 },
+  { $limit: 2 }
+])
+
+
+
+Find total revenue by category for orders above 10,000 and display in descending
+order.
+
+db.orders.aggregate([
+{ $match: { totalAmount: { $gt: 10000 } } },
+{ $group: { _id: "$category", totalRevenue: { $sum: "$totalAmount" } } },
+{ $project: { category: "$_id", totalRevenue: 1, _id: 0 } },
+{ $sort: { totalRevenue: -1 } }
+])
+
+2.Find top 3 products with highest average order amount.
+
+db.orders.aggregate([
+{ $group: { _id: "$product", avgAmount: { $avg: "$totalAmount" } } },
+{ $project: { product: "$_id", avgAmount: 1, _id: 0 } },
+{ $sort: { avgAmount: -1 } },
+{ $limit: 3 }
+])
+
+3.Display 4 orders after skipping first 2, showing only customer name and amount
+sorted by amount.
+
+db.orders.aggregate([
+{ $project: { customerName: 1, totalAmount: 1, _id: 0 } },
+{ $sort: { totalAmount: -1 } },
+{ $skip: 2 },
+{ $limit: 4 }
+])
+
+4.Find categories having more than 2 orders (only for quantity > 1), sorted ascending.
+
+db.orders.aggregate([
+{ $match: { quantity: { $gt: 1 } } },
+{ $group: { _id: "$category", count: { $sum: 1 } } },
+{ $match: { count: { $gt: 2 } } },
+{ $sort: { count: 1 } }
+])
+
+5.Find total quantity sold per category, skip first result and show next 2 highest
+
+db.orders.aggregate([
+{ $group: { _id: "$category", totalQty: { $sum: "$quantity" } } },
+{ $sort: { totalQty: -1 } },
+{ $skip: 1 },
+{ $limit: 2 }
+])
+
+6.Find customers whose total order amount is greater than 5,000, calculate total
+spending per customer, display only customer name and total spending, sort by
+highest spending, skip the top customer and show next 2.
+
+db.orders.aggregate([
+{ $match: { totalAmount: { $gt: 5000 } } },
+{ $group: { _id: "$customerName", totalSpent: { $sum: "$totalAmount" } } },
+{ $project: { customerName: "$_id", totalSpent: 1, _id: 0 } },
+{ $sort: { totalSpent: -1 } },
+{ $skip: 1 },
+{ $limit: 2 }
+])
+
+7.Find total revenue per category where price is greater than 1000, display categories
+having total revenue greater than 20,000, sort in descending order and show only top
+3.
+
+db.orders.aggregate([
+{ $match: { price: { $gt: 1000 } } },
+{ $group: { _id: "$category", totalRevenue: { $sum: "$totalAmount" } } },
+{ $match: { totalRevenue: { $gt: 20000 } } },
+{ $project: { category: "$_id", totalRevenue: 1, _id: 0 } },
+{ $sort: { totalRevenue: -1 } },
+{ $limit: 3 }
+
+8.Find products where quantity is greater than 1, calculate total quantity sold per
+product, display only product name and total quantity, sort in descending order, skip 1
+product and show next 3.
+
+db.orders.aggregate([
+{ $match: { quantity: { $gt: 1 } } },
+{ $group: { _id: "$product", totalQty: { $sum: "$quantity" } } },
+{ $project: { product: "$_id", totalQty: 1, _id: 0 } },
+{ $sort: { totalQty: -1 } },
+{ $skip: 1 },
+{ $limit: 3 }
+])
+
+9.Find categories where total order amount is greater than 1000, calculate total revenue
+per category, include only categories where revenue is greater than 5000, display
+category and revenue, sort ascending, and show top 2.
+
+db.orders.aggregate([
+{ $match: { totalAmount: { $gt: 1000 } } },
+{ $group: { _id: "$category", totalRevenue: { $sum: "$totalAmount" } } },
+{ $match: { totalRevenue: { $gt: 5000 } } },
+{ $project: { category: "$_id", totalRevenue: 1, _id: 0 } },
+{ $sort: { totalRevenue: 1 } },
+{ $limit: 2 }
+])
