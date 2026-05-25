@@ -1,0 +1,120 @@
+//setupReplica.js
+rs.initiate({
+   _id: "rs0",
+   members: [
+      { _id: 0, host: "localhost:27017" },
+      { _id: 1, host: "localhost:27018" },
+      { _id: 2, host: "localhost:27019" }
+   ]
+});
+ 
+print("Replica Set Initialized");
+
+//insertUsers.js
+
+use("OttDB");
+ 
+db.users.insertMany([
+ 
+   { 
+      userID:"U1",
+      name: "John",
+      email: "john@gmail.com",
+      subscription:"Premium",
+      country:"Canada",
+      createdAt:new Date()
+   },
+ 
+   { 
+      userID:"U2",
+      name: "Sophie",
+      email: "sophie@gmail.com",
+      subscription:"Basic",
+      country:"Australia",
+      createdAt:new Date()
+   },
+    {
+      userID:"U3",
+      name: "Diya",
+      email: "diya@gmail.com",
+      subscription:"Premium",
+      country:"India",
+      createdAt:new Date()
+   },
+   {
+      userID:"U4",
+      name: "Leo",
+      email: "leo@gmail.com",
+      subscription:"Basic",
+      country:"India",
+      createdAt:new Date()
+   }
+ 
+]);
+ 
+print("Data Inserted Successfully");
+
+
+//insertStreamHistory
+use("OttDB");
+db.streaming_history.insertMany([
+  
+  { historyId: "H1", userId: "U2", contentTitle: "Bangalore Days", genre: "Drama", watchDuration: 160, watchedAt: new Date() },
+  { historyId: "H2", userId: "U3", contentTitle: "KGF", genre: "Action", watchDuration: 170, watchedAt: new Date() },
+  { historyId: "H3", userId: "U1", contentTitle: "Drishyam", genre: "Thriller", watchDuration: 130, watchedAt: new Date() },
+  { historyId: "H4", userId: "U2", contentTitle: "Uyare", genre: "Inspirational", watchDuration: 125, watchedAt: new Date() },
+  { historyId: "H5", userId: "U3", contentTitle: "Kumbalangi Nights", genre: "Family Drama", watchDuration: 135, watchedAt: new Date() }
+]);
+print("Inserted Streaming History")
+
+
+//insertRecommendations
+use("OttDB");
+db.recommendations.insertMany([
+   
+{ recommendationId: "R1", userId: "U2", recommendedTitle: "Bangalore Days", genre: "Drama",score:8 },
+{ recommendationId: "R2", userId: "U3", recommendedTitle: "KGF Chapter 2", genre: "Action",score:9 },
+{ recommendationId: "R3", userId: "U1", recommendedTitle: "Drishyam ", genre: "Thriller",score:10 },
+])
+print("Inserted Recommendations Successfully")
+
+
+//deleteData.js
+use("OttDB");
+
+db.users.deleteOne(
+    { name: "John" }
+);
+print("Inactive user deleted successfully");
+
+db.activity_logs.deleteMany(
+    { timestamp: { $lt: new Date("2025-05-25") } }
+);
+print("Old activity logs deleted successfully");
+
+db.streaming_history.deleteOne(
+    { contentTitle: "Kumbalangi Nights" }
+);
+print("Watch history record deleted successfully");
+
+
+//updateData.js
+use("OttDB");
+
+db.users.updateOne(
+    { userID: "U2" },
+    { $set: { subscription: "Premium" } }
+);
+print("User subscription updated successfully");
+
+db.streaming_history.updateOne(
+    { contentTitle: "Bangalore Days" },
+    { $set: { watchDuration: 140 } }
+);
+print("Watch duration updated successfully");
+
+db.recommendations.updateOne(
+    { recommendedTitle: "KGF Chapter 2" },
+    { $set: { score: 10 } }
+);
+print("Recommendation score updated successfully");
