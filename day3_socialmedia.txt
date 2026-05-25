@@ -20,7 +20,7 @@ db.users.insertMany([
         followingCount:400
     },
  {
-        userid:"U3",
+        userId:"U3",
         username:"Monika",
         email:"monika@gmail.com",
         bio:"Bio3",
